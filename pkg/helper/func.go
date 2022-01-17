@@ -7,6 +7,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
+	"pay/pkg/param"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -119,4 +122,15 @@ func Strval(value interface{}) string {
 
 func BuildResponseKeyFromMethod(method string) string {
 	return strings.Replace(method, ".", "_", -1) + "_response"
+}
+
+func GenerateQueryStringExceptSign(param param.Params) string {
+	var data []string
+	for k, v := range param {
+		if v != "" && k != "sign" {
+			data = append(data, fmt.Sprintf(`%s=%s`, k, v))
+		}
+	}
+	sort.Strings(data)
+	return strings.Join(data, "&")
 }

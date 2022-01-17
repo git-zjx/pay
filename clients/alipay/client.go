@@ -78,7 +78,7 @@ func (client *Client) Cancel(request param.Params) (param.Params, error) {
 
 func (client *Client) Verify(request param.Params) (param.Params, error) {
 	var err error
-	if err = sign.VerifySign(request, client.config.SignType, []byte(client.config.AlipayPublicKey), request["sign"].(string)); err != nil {
+	if err = sign.Verify(request, client.config.SignType, []byte(client.config.AlipayPublicKey), request["sign"].(string)); err != nil {
 		return nil, err
 	}
 	return request, nil
@@ -115,7 +115,7 @@ func (client *Client) verifySign(params param.Params, retSign string) error {
 	var (
 		err error
 	)
-	if err = sign.VerifySign(params, client.config.SignType, []byte(client.config.AlipayPublicKey), retSign); err != nil {
+	if err = sign.Verify(params, client.config.SignType, []byte(client.config.AlipayPublicKey), retSign); err != nil {
 		return err
 	}
 	return nil

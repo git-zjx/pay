@@ -7,13 +7,10 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
 	"hash"
 	"pay/clients/alipay/pkg/key"
 	"pay/pkg/helper"
 	"pay/pkg/param"
-	"sort"
-	"strings"
 )
 
 const (
@@ -33,7 +30,7 @@ func Generate(m interface{}, signType string, privateKey *rsa.PrivateKey) (strin
 	if err != nil {
 		return "", err
 	}
-	signData := getQueryStringExceptSign(paramMap)
+	signData := helper.GenerateQueryStringExceptSign(paramMap)
 	switch signType {
 	case RSA:
 		h = sha1.New()
@@ -58,7 +55,7 @@ func Generate(m interface{}, signType string, privateKey *rsa.PrivateKey) (strin
 	return base64.StdEncoding.EncodeToString(encryptedBytes), nil
 }
 
-func VerifySign(m interface{}, signType string, publicKey []byte, sign string) error {
+func Verify(m interface{}, signType string, publicKey []byte, sign string) error {
 	var (
 		h        hash.Hash
 		hasher   crypto.Hash
@@ -74,7 +71,7 @@ func VerifySign(m interface{}, signType string, publicKey []byte, sign string) e
 	if err != nil {
 		return err
 	}
-	signData := getQueryStringExceptSign(paramMap)
+	signData := helper.GenerateQueryStringExceptSign(paramMap)
 	switch signType {
 	case RSA:
 		hasher = crypto.SHA1
@@ -88,13 +85,3 @@ func VerifySign(m interface{}, signType string, publicKey []byte, sign string) e
 	return rsa.VerifyPKCS1v15(pKey, hasher, h.Sum(nil), signBytes)
 }
 
-func getQueryStringExceptSign(param param.Params) string {
-	var data []string
-	for k, v := range param {
-		if v != "" && k != "sign" {
-			data = append(data, fmt.Sprintf(`%s=%s`, k, v))
-		}
-	}
-	sort.Strings(data)
-	return strings.Join(data, "&")
-}
