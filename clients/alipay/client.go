@@ -76,7 +76,7 @@ func (client *Client) Cancel(request param.Params) (param.Params, error) {
 	return client.cancel(payload)
 }
 
-func (client *Client) Verify(request param.Params) (param.Params, error) {
+func (client *Client) Verify(request param.Params, isRefund bool) (param.Params, error) {
 	var err error
 	if err = sign.Verify(request, client.config.SignType, []byte(client.config.AlipayPublicKey), request["sign"].(string)); err != nil {
 		return nil, err

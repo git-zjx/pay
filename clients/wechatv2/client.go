@@ -1,7 +1,10 @@
 package wechatv2
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -12,6 +15,7 @@ import (
 	payErr "pay/pkg/error"
 	"pay/pkg/helper"
 	"pay/pkg/param"
+	"strings"
 )
 
 type Config struct {
@@ -80,12 +84,65 @@ func (client *Client) Cancel(request param.Params) (param.Params, error) {
 	return client.cancel(payload)
 }
 
-func (client *Client) Verify(request param.Params) (param.Params, error) {
+func (client *Client) Verify(request param.Params, isRefund bool) (param.Params, error) {
+	var (
+		encryptionB, bs []byte
+		block           cipher.Block
+		blockSize       int
+		err             error
+	)
+	if isRefund {
+		reqInfoStr, ok := request["req_info"]
+		if !ok {
+			return nil, payErr.ReqInfoNotFoundErr
+		}
+		if encryptionB, err = base64.StdEncoding.DecodeString(reqInfoStr.(string)); err != nil {
+			return nil, err
+		}
+		md5Key, err := helper.Md5(client.config.ApiKey)
+		if err != nil {
+			return nil, err
+		}
+		key := strings.ToLower(md5Key)
+		if len(encryptionB)%aes.BlockSize != 0 {
+			return nil, errors.New("encryptedData is error")
+		}
+		if block, err = aes.NewCipher([]byte(key)); err != nil {
+			return nil, err
+		}
+		blockSize = block.BlockSize()
+		err = func(dst, src []byte) error {
+			if len(src)%blockSize != 0 {
+				return errors.New("crypto/cipher: input not full blocks")
+			}
+			if len(dst) < len(src) {
+				return errors.New("crypto/cipher: output smaller than input")
+			}
+			for len(src) > 0 {
+				block.Decrypt(dst, src[:blockSize])
+				src = src[blockSize:]
+				dst = dst[blockSize:]
+			}
+			return nil
+		}(encryptionB, encryptionB)
+		if err != nil {
+			return nil, err
+		}
+		bs = helper.PKCS7UnPadding(encryptionB)
+		var reqInfo param.Params
+		if err = helper.XmlUnmarshal(bs, &reqInfo); err != nil {
+			return nil, err
+		}
+		request["req_info"] = reqInfo
+	}
+	if err = client.verifySign(request, request["sign"].(string)); err != nil {
+		return nil, err
+	}
 	return request, nil
 }
 
 func (client *Client) Success() {
-	fmt.Println("success")
+	fmt.Println("<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>")
 }
 
 func (client *Client) generateSign(params param.Params) (string, error) {

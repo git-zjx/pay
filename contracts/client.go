@@ -8,6 +8,6 @@ type Client interface {
 	Refund(request param.Params) (param.Params, error)
 	Cancel(request param.Params) (param.Params, error)
 	Close(request param.Params) (param.Params, error)
-	Verify(request param.Params) (param.Params, error)
+	Verify(request param.Params, isRefund bool) (param.Params, error)
 	Success()
 }

@@ -9,4 +9,5 @@ var (
 	PayReturnParamNotHaveSignErr = errors.New("pay return param not have sign")
 	SignNotMatchErr = errors.New("sign not match err")
 	CertNotFoundErr = errors.New("cert not found err")
+	ReqInfoNotFoundErr = errors.New("req_info not found err")
 )
