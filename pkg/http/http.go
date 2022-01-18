@@ -1,6 +1,7 @@
 package http
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
@@ -13,7 +14,7 @@ import (
 const TypeXML = "application/xml"
 const TypeUrlencoded = "application/x-www-form-urlencoded"
 
-func Post(url, contentType string, reqBody io.Reader) (param.Params, error) {
+func Post(url, contentType string, reqBody io.Reader, tlsConfig *tls.Config) (param.Params, error) {
 	var (
 		httpResp     *netHttp.Response
 		httpRespBody []byte
@@ -22,6 +23,9 @@ func Post(url, contentType string, reqBody io.Reader) (param.Params, error) {
 	)
 	client := &netHttp.Client{
 		Timeout: time.Second * 2,
+	}
+	if tlsConfig != nil {
+		client.Transport = &netHttp.Transport{TLSClientConfig: tlsConfig, DisableKeepAlives: true, Proxy: netHttp.ProxyFromEnvironment}
 	}
 	if httpResp, err = client.Post(url, contentType, reqBody); err != nil {
 		return nil, err
@@ -35,7 +39,6 @@ func Post(url, contentType string, reqBody io.Reader) (param.Params, error) {
 	if httpRespBody, err = io.ReadAll(httpResp.Body); err != nil {
 		return nil, err
 	}
-	fmt.Println(string(httpRespBody))
 	if contentType == TypeUrlencoded {
 		if err = helper.JsonUnMarshal(httpRespBody, &resp); err != nil {
 			return nil, err
@@ -46,8 +49,4 @@ func Post(url, contentType string, reqBody io.Reader) (param.Params, error) {
 		}
 	}
 	return resp, nil
-}
-
-func Get() {
-
 }

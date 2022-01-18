@@ -8,10 +8,12 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"pay/pkg/param"
+	"math/rand"
+	"net"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func Md5(str ...string) (string, error) {
@@ -124,7 +126,7 @@ func BuildResponseKeyFromMethod(method string) string {
 	return strings.Replace(method, ".", "_", -1) + "_response"
 }
 
-func GenerateQueryStringExceptSign(param param.Params) string {
+func GenerateQueryStringExceptSign(param map[string]interface{}) string {
 	var data []string
 	for k, v := range param {
 		if v != "" && k != "sign" {
@@ -133,4 +135,34 @@ func GenerateQueryStringExceptSign(param param.Params) string {
 	}
 	sort.Strings(data)
 	return strings.Join(data, "&")
+}
+
+func GenerateRandomString(l int) string {
+	str := "0123456789AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz"
+	bytes := []byte(str)
+	var result []byte = make([]byte, 0, l)
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < l; i++ {
+		result = append(result, bytes[r.Intn(len(bytes))])
+	}
+	return string(result)
+}
+
+func LocalIp() string {
+	var (
+		err error
+	)
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+	for _, addr := range addrs {
+		ipNet, isIpNet := addr.(*net.IPNet)
+		if isIpNet && !ipNet.IP.IsLoopback() {
+			if ipNet.IP.To4() != nil {
+				return ipNet.IP.String()
+			}
+		}
+	}
+	return ""
 }

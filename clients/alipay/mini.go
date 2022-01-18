@@ -23,7 +23,7 @@ func (client *Client) mini(payload param.Params) (param.Params, error) {
 	}
 	payload["sign"] = sign
 	fmt.Println(payload.ToUrlValue())
-	if httpResp, err = http.Post(url, http.TypeUrlencoded, strings.NewReader(payload.ToUrlValue())); err != nil {
+	if httpResp, err = http.Post(url, http.TypeUrlencoded, strings.NewReader(payload.ToUrlValue()), nil); err != nil {
 		return nil, err
 	}
 	resp, sign, err = client.getRespAndSignFromHttpResp(httpResp, MiniPayMethod)

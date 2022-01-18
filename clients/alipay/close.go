@@ -21,7 +21,7 @@ func (client *Client) close(payload param.Params) (param.Params, error) {
 		return nil, err
 	}
 	payload["sign"] = sign
-	if httpResp, err = http.Post(url, http.TypeUrlencoded, strings.NewReader(payload.ToUrlValue())); err != nil {
+	if httpResp, err = http.Post(url, http.TypeUrlencoded, strings.NewReader(payload.ToUrlValue()), nil); err != nil {
 		return nil, err
 	}
 	resp, sign, err = client.getRespAndSignFromHttpResp(httpResp, CloseMethod)
@@ -48,7 +48,7 @@ func (client *Client) cancel(payload param.Params) (param.Params, error) {
 		return nil, err
 	}
 	payload["sign"] = sign
-	if httpResp, err = http.Post(url, http.TypeUrlencoded, strings.NewReader(payload.ToUrlValue())); err != nil {
+	if httpResp, err = http.Post(url, http.TypeUrlencoded, strings.NewReader(payload.ToUrlValue()), nil); err != nil {
 		return nil, err
 	}
 	resp, sign, err = client.getRespAndSignFromHttpResp(httpResp, CancelMethod)

@@ -1,4 +1,4 @@
-package alipay
+package wechatv2
 
 import (
 	"pay/pkg/helper"
@@ -7,24 +7,23 @@ import (
 	"strings"
 )
 
-func (client *Client) scan(payload param.Params) (param.Params, error) {
+func (client *Client) cancel(payload param.Params) (param.Params, error) {
 	var (
 		httpResp = param.Params{}
 		resp     = param.Params{}
-		url      = client.getUrl()
+		url      = client.getUrl(CancelMethod)
 		sign     string
 		err      error
 	)
-	payload["method"] = PreCreateMethod
-	payload["biz_content"] = helper.JsonMarshal(payload["biz_content"])
+	delete(payload, "spbill_create_ip")
 	if sign, err = client.generateSign(payload); err != nil {
 		return nil, err
 	}
 	payload["sign"] = sign
-	if httpResp, err = http.Post(url, http.TypeUrlencoded, strings.NewReader(payload.ToUrlValue()), nil); err != nil {
+	if httpResp, err = http.Post(url, http.TypeXML, strings.NewReader(helper.XmlMarshal(payload)), nil); err != nil {
 		return nil, err
 	}
-	resp, sign, err = client.getRespAndSignFromHttpResp(httpResp, PreCreateMethod)
+	resp, sign, err = client.getRespAndSignFromHttpResp(httpResp)
 	if err != nil {
 		return nil, err
 	}
