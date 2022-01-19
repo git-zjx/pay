@@ -5,15 +5,9 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
-	"fmt"
-	"pay/pkg/helper"
 )
 
-const SignatureMessageFormat = "%s\n%s\n%d\n%s\n%s\n"
-
-func Generate(m interface{}, method, url string, timestamp int64, nonce string, privateKey *rsa.PrivateKey) (string, error) {
-	signBody := helper.JsonMarshal(m)
-	message := fmt.Sprintf(SignatureMessageFormat, method, url, timestamp, nonce, signBody)
+func Generate(message string, privateKey *rsa.PrivateKey) (string, error) {
 	h := crypto.Hash.New(crypto.SHA256)
 	_, err := h.Write([]byte(message))
 	if err != nil {

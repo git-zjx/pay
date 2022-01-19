@@ -8,10 +8,10 @@ import (
 
 func (client *Client) app(payload param.Params) (param.Params, error) {
 	var (
-		resp          = param.Params{}
+		resp       = param.Params{}
 		prePayResp = param.Params{}
-		sign          string
-		err           error
+		sign       string
+		err        error
 	)
 	payload["trade_type"] = "APP"
 	if prePayResp, err = client.prePay(payload); err != nil {

@@ -1,7 +1,42 @@
 package wechatv3
 
-import "pay/pkg/param"
+import (
+	"crypto/rsa"
+	netHttp "net/http"
+	"pay/clients/wechatv3/pkg/http"
+	payErr "pay/pkg/error"
+	"pay/pkg/param"
+)
 
 func (client *Client) wap(payload param.Params) (param.Params, error) {
-	return nil, nil
+	var (
+		resp          = param.Params{}
+		prePayResp    = param.Params{}
+		privateKey    *rsa.PrivateKey
+		h5Url       string
+		authorization string
+		url           = client.getUrl(WapPayMethod)
+		ok            bool
+		err           error
+	)
+	if privateKey, err = client.generatePrivateKey(); err != nil {
+		return nil, err
+	}
+	if authorization, err = client.generateAuthorizationHeader(payload, netHttp.MethodPost, url, privateKey); err != nil {
+		return nil, err
+	}
+	if prePayResp, err = http.Request(netHttp.MethodPost, url, authorization, payload); err != nil {
+		return nil, err
+	}
+	if err = client.isSuccess(prePayResp); err != nil {
+		return nil, err
+	}
+	if _, ok = prePayResp["h5_url"]; !ok {
+		return nil, payErr.PrepayIdNotFoundErr
+	}
+	if h5Url, ok = prePayResp["h5_url"].(string); !ok {
+		return nil, payErr.PrepayIdFormatErr
+	}
+	resp["h5_url"] = h5Url
+	return resp, nil
 }
