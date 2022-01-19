@@ -85,8 +85,7 @@ func DecodePrivateKey(pemContent []byte) (*rsa.PrivateKey, error) {
 			return nil, err
 		}
 		var ok bool
-		privateKey, ok = pk8.(*rsa.PrivateKey)
-		if !ok {
+		if privateKey, ok = pk8.(*rsa.PrivateKey); !ok {
 			return nil, errors.New("decode private key fail")
 		}
 	}

@@ -77,8 +77,18 @@ func (client *Client) Cancel(request param.Params) (param.Params, error) {
 }
 
 func (client *Client) Verify(request param.Params, isRefund bool) (param.Params, error) {
-	var err error
-	if err = sign.Verify(request, client.config.SignType, []byte(client.config.AlipayPublicKey), request["sign"].(string)); err != nil {
+	var (
+		reqSign string
+		ok      bool
+		err     error
+	)
+	if _, ok = request["sign"]; !ok {
+		return nil, payErr.SignNotFoundErr
+	}
+	if reqSign, ok = request["sign"].(string); !ok {
+		return nil, payErr.SignFormatErr
+	}
+	if err = sign.Verify(request, client.config.SignType, []byte(client.config.AlipayPublicKey), reqSign); err != nil {
 		return nil, err
 	}
 	return request, nil
@@ -122,7 +132,17 @@ func (client *Client) verifySign(params param.Params, retSign string) error {
 }
 
 func (client *Client) isSuccess(data param.Params) error {
-	if data["code"].(string) == "10000" {
+	var (
+		code string
+		ok   bool
+	)
+	if _, ok = data["code"]; !ok {
+		return payErr.CodeNotFoundErr
+	}
+	if code, ok = data["code"].(string); !ok {
+		return payErr.CodeFormatErr
+	}
+	if code == "10000" {
 		return nil
 	}
 	return errors.New(fmt.Sprintf("%s", data))
@@ -130,22 +150,28 @@ func (client *Client) isSuccess(data param.Params) error {
 
 func (client *Client) getRespAndSignFromHttpResp(httpResp param.Params, method string) (param.Params, string, error) {
 	var (
-		resp param.Params
-		err  error
+		resp    param.Params
+		retSign string
+		err     error
 	)
 	data, ok := httpResp[helper.BuildResponseKeyFromMethod(method)]
 	if !ok {
 		return nil, "", payErr.PayReturnParamFormatErr
 	}
-	resp = data.(map[string]interface{})
+	if resp, ok = data.(map[string]interface{}); !ok {
+		return nil, "", payErr.PayReturnParamFormatErr
+	}
 	if err = client.isSuccess(resp); err != nil {
 		return nil, "", err
 	}
-	retSign, ok := httpResp["sign"]
-	if !ok {
+	if _, ok = httpResp["sign"]; !ok {
 		return nil, "", payErr.PayReturnParamNotHaveSignErr
 	}
-	return resp, retSign.(string), nil
+
+	if retSign, ok = httpResp["sign"].(string); !ok {
+		return nil, "", payErr.SignFormatErr
+	}
+	return resp, retSign, nil
 }
 
 func (client *Client) generatePayload(request param.Params) param.Params {
