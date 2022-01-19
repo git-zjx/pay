@@ -1,23 +1,28 @@
 package wechatv3
 
 import (
+	"crypto/rsa"
+	"fmt"
+	"pay/clients/wechatv3/pkg/sign"
 	"pay/pkg/constant"
 	payErr "pay/pkg/error"
 	"pay/pkg/helper"
 	"pay/pkg/param"
+	"time"
 )
 
 type Config struct {
-	AppId      string
-	MchId      string
-	ApiKey     string
-	CertPath   string
-	KeyPath    string
-	Pkcs12Path string
-	ReturnUrl  string
-	NotifyUrl  string
-	SignType   string
-	Sandbox    bool
+	AppId               string
+	MchId               string
+	CertificateSerialNo string
+	ApiKey              string
+	CertPath            string
+	KeyPath             string
+	Pkcs12Path          string
+	ReturnUrl           string
+	NotifyUrl           string
+	SignType            string
+	Sandbox             bool
 }
 
 type Client struct {
@@ -56,4 +61,15 @@ func (client *Client) generatePayload(request param.Params) param.Params {
 	request["notify_url"] = client.config.NotifyUrl
 	request["nonce_str"] = helper.GenerateRandomString(32)
 	return request
+}
+
+func (client *Client) generateAuthorizationHeader(m interface{}, method, url string, privateKey *rsa.PrivateKey) (string, error) {
+	nonce := helper.GenerateRandomString(32)
+	timestamp := time.Now().Unix()
+	signatureResult, err := sign.Generate(m, method, url, timestamp, nonce, privateKey)
+	if err != nil {
+		return "", err
+	}
+	authorization := fmt.Sprintf(AuthorizationFormat, "WECHATPAY2-SHA256-RSA2048", client.config.MchId, nonce, timestamp, client.config.CertificateSerialNo, signatureResult)
+	return authorization, nil
 }
