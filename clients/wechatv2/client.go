@@ -89,14 +89,22 @@ func (client *Client) Verify(request param.Params, isRefund bool) (param.Params,
 		encryptionB, bs []byte
 		block           cipher.Block
 		blockSize       int
+		reqSign         string
+		ok              bool
 		err             error
 	)
+	if _, ok = request["sign"]; !ok {
+		return nil, payErr.SignNotFoundErr
+	}
 	if isRefund {
-		reqInfoStr, ok := request["req_info"]
-		if !ok {
+		var reqInfoStr string
+		if _, ok = request["req_info"]; !ok {
 			return nil, payErr.ReqInfoNotFoundErr
 		}
-		if encryptionB, err = base64.StdEncoding.DecodeString(reqInfoStr.(string)); err != nil {
+		if reqInfoStr, ok = request["req_info"].(string); !ok {
+			return nil, payErr.ReqInfoFormatErr
+		}
+		if encryptionB, err = base64.StdEncoding.DecodeString(reqInfoStr); err != nil {
 			return nil, err
 		}
 		md5Key, err := helper.Md5(client.config.ApiKey)
@@ -135,7 +143,10 @@ func (client *Client) Verify(request param.Params, isRefund bool) (param.Params,
 		}
 		request["req_info"] = reqInfo
 	}
-	if err = client.verifySign(request, request["sign"].(string)); err != nil {
+	if reqSign, ok = request["sign"].(string); !ok {
+		return nil, payErr.SignFormatErr
+	}
+	if err = client.verifySign(request, reqSign); err != nil {
 		return nil, err
 	}
 	return request, nil
@@ -168,20 +179,40 @@ func (client *Client) verifySign(params param.Params, retSign string) error {
 
 func (client *Client) getRespAndSignFromHttpResp(httpResp param.Params) (param.Params, string, error) {
 	var (
-		err error
+		retSign string
+		ok      bool
+		err     error
 	)
 	if err = client.isSuccess(httpResp); err != nil {
 		return nil, "", err
 	}
-	retSign, ok := httpResp["sign"]
-	if !ok {
+	if _, ok = httpResp["sign"]; !ok {
 		return nil, "", payErr.PayReturnParamNotHaveSignErr
 	}
-	return httpResp, retSign.(string), nil
+	if retSign, ok = httpResp["sign"].(string); !ok {
+		return nil, "", payErr.SignFormatErr
+	}
+	return httpResp, retSign, nil
 }
 
 func (client *Client) isSuccess(data param.Params) error {
-	if data["return_code"].(string) == "SUCCESS" && data["result_code"].(string) == "SUCCESS" {
+	var (
+		returnCode, resultCode string
+		ok                     bool
+	)
+	if _, ok = data["return_code"]; !ok {
+		return payErr.CodeNotFoundErr
+	}
+	if _, ok = data["result_code"]; !ok {
+		return payErr.CodeNotFoundErr
+	}
+	if returnCode, ok = data["return_code"].(string); !ok {
+		return payErr.CodeFormatErr
+	}
+	if resultCode, ok = data["result_code"].(string); !ok {
+		return payErr.CodeFormatErr
+	}
+	if returnCode == "SUCCESS" && resultCode == "SUCCESS" {
 		return nil
 	}
 	return errors.New(fmt.Sprintf("%s", data))

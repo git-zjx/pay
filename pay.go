@@ -27,7 +27,6 @@ func NewPay(config interface{}) *Pay {
 			return nil
 		}
 		pay.client = wechatv2.NewClient(c)
-
 	}
 	return pay
 }
@@ -65,8 +64,8 @@ func (p *Pay) Close(request param.Params) (param.Params, error) {
 func (p *Pay) Cancel(request param.Params) (param.Params, error) {
 	return p.client.Cancel(request)
 }
-func (p *Pay) Verify(request param.Params) (param.Params, error) {
-	return p.client.Verify(request)
+func (p *Pay) Verify(request param.Params, isRefund bool) (param.Params, error) {
+	return p.client.Verify(request, isRefund)
 }
 func (p *Pay) Success() {
 	p.client.Success()
