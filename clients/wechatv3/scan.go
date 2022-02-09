@@ -15,17 +15,16 @@ func (client *Client) scan(payload param.Params) (param.Params, error) {
 		privateKey    *rsa.PrivateKey
 		codeUrl       string
 		authorization string
-		url           = client.getUrl(ScanPayMethod)
 		ok            bool
 		err           error
 	)
 	if privateKey, err = client.generatePrivateKey(); err != nil {
 		return nil, err
 	}
-	if authorization, err = client.generateAuthorizationHeader(payload, netHttp.MethodPost, url, privateKey); err != nil {
+	if authorization, err = client.generateAuthorizationHeader(payload, netHttp.MethodPost, ScanPayMethod, privateKey); err != nil {
 		return nil, err
 	}
-	if prePayResp, err = http.Request(netHttp.MethodPost, url, authorization, payload); err != nil {
+	if prePayResp, err = http.Request(netHttp.MethodPost, client.getUrl(ScanPayMethod), authorization, payload); err != nil {
 		return nil, err
 	}
 	if err = client.isSuccess(prePayResp); err != nil {

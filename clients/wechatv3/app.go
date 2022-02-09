@@ -15,7 +15,6 @@ func (client *Client) app(payload param.Params) (param.Params, error) {
 	var (
 		resp          = param.Params{}
 		prePayResp    = param.Params{}
-		url           = client.getUrl(AppPayMethod)
 		privateKey    *rsa.PrivateKey
 		prepayId      string
 		authorization string
@@ -26,10 +25,10 @@ func (client *Client) app(payload param.Params) (param.Params, error) {
 	if privateKey, err = client.generatePrivateKey(); err != nil {
 		return nil, err
 	}
-	if authorization, err = client.generateAuthorizationHeader(payload, netHttp.MethodPost, url, privateKey); err != nil {
+	if authorization, err = client.generateAuthorizationHeader(payload, netHttp.MethodPost, AppPayMethod, privateKey); err != nil {
 		return nil, err
 	}
-	if prePayResp, err = http.Request(netHttp.MethodPost, url, authorization, payload); err != nil {
+	if prePayResp, err = http.Request(netHttp.MethodPost, client.getUrl(AppPayMethod), authorization, payload); err != nil {
 		return nil, err
 	}
 	if err = client.isSuccess(prePayResp); err != nil {

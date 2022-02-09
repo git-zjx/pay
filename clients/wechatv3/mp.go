@@ -18,7 +18,6 @@ func (client *Client) mp(payload param.Params) (param.Params, error) {
 		privateKey    *rsa.PrivateKey
 		prepayId      string
 		authorization string
-		url           = client.getUrl(JsapiPayMethod)
 		ok            bool
 		sign          string
 		err           error
@@ -26,10 +25,10 @@ func (client *Client) mp(payload param.Params) (param.Params, error) {
 	if privateKey, err = client.generatePrivateKey(); err != nil {
 		return nil, err
 	}
-	if authorization, err = client.generateAuthorizationHeader(payload, netHttp.MethodPost, url, privateKey); err != nil {
+	if authorization, err = client.generateAuthorizationHeader(payload, netHttp.MethodPost, JsapiPayMethod, privateKey); err != nil {
 		return nil, err
 	}
-	if prePayResp, err = http.Request(netHttp.MethodPost, url, authorization, payload); err != nil {
+	if prePayResp, err = http.Request(netHttp.MethodPost, client.getUrl(JsapiPayMethod), authorization, payload); err != nil {
 		return nil, err
 	}
 	if err = client.isSuccess(prePayResp); err != nil {

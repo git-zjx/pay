@@ -49,13 +49,29 @@ func (client *Client) Pay(method string, request param.Params) (param.Params, er
 		return client.app(payload)
 	case constant.MINI:
 		return client.mini(payload)
-	case constant.POS:
-		return client.pos(payload)
 	case constant.SCAN:
 		return client.scan(payload)
 	default:
 		return nil, payErr.PayMethodErr
 	}
+}
+
+func (client *Client) Find(request param.Params, isRefund bool) (param.Params, error) {
+	payload := client.generatePayload(request)
+	if isRefund {
+		return client.refundQuery(payload)
+	}
+	return client.query(payload)
+}
+
+func (client *Client) Refund(request param.Params) (param.Params, error) {
+	payload := client.generatePayload(request)
+	return client.refund(payload)
+}
+
+func (client *Client) Close(request param.Params) (param.Params, error) {
+	payload := client.generatePayload(request)
+	return client.close(payload)
 }
 
 func (client *Client) getUrl(endPoint string) string {
