@@ -2,7 +2,7 @@ package wechatv2
 
 import (
 	"net/url"
-	payErr "pay/pkg/error"
+	 "pay/pkg/exerror"
 	"pay/pkg/param"
 )
 
@@ -22,10 +22,10 @@ func (client *Client) wap(payload param.Params) (param.Params, error) {
 		return nil, err
 	}
 	if _, ok = prePayResp["mweb_url"]; !ok {
-		return nil, payErr.MwebUrlNotFoundErr
+		return nil, exerror.MwebUrlNotFoundErr
 	}
 	if mwebUrl, ok = prePayResp["mweb_url"].(string); !ok {
-		return nil, payErr.MwebUrlFormatErr
+		return nil, exerror.MwebUrlFormatErr
 	}
 	if client.config.ReturnUrl != "" {
 		mwebUrl += "&redirect_url=" + url.QueryEscape(client.config.ReturnUrl)

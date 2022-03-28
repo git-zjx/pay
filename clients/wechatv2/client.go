@@ -12,7 +12,7 @@ import (
 	"io/ioutil"
 	"pay/clients/wechatv2/pkg/sign"
 	"pay/pkg/constant"
-	payErr "pay/pkg/error"
+	 "pay/pkg/exerror"
 	"pay/pkg/helper"
 	"pay/pkg/param"
 	"strings"
@@ -57,7 +57,7 @@ func (client *Client) Pay(method string, request param.Params) (param.Params, er
 	case constant.SCAN:
 		return client.scan(payload)
 	default:
-		return nil, payErr.PayMethodErr
+		return nil, exerror.PayMethodErr
 	}
 }
 
@@ -94,15 +94,15 @@ func (client *Client) Verify(request param.Params, isRefund bool) (param.Params,
 		err             error
 	)
 	if _, ok = request["sign"]; !ok {
-		return nil, payErr.SignNotFoundErr
+		return nil, exerror.SignNotFoundErr
 	}
 	if isRefund {
 		var reqInfoStr string
 		if _, ok = request["req_info"]; !ok {
-			return nil, payErr.ReqInfoNotFoundErr
+			return nil, exerror.ReqInfoNotFoundErr
 		}
 		if reqInfoStr, ok = request["req_info"].(string); !ok {
-			return nil, payErr.ReqInfoFormatErr
+			return nil, exerror.ReqInfoFormatErr
 		}
 		if encryptionB, err = base64.StdEncoding.DecodeString(reqInfoStr); err != nil {
 			return nil, err
@@ -144,7 +144,7 @@ func (client *Client) Verify(request param.Params, isRefund bool) (param.Params,
 		request["req_info"] = reqInfo
 	}
 	if reqSign, ok = request["sign"].(string); !ok {
-		return nil, payErr.SignFormatErr
+		return nil, exerror.SignFormatErr
 	}
 	if err = client.verifySign(request, reqSign); err != nil {
 		return nil, err
@@ -187,10 +187,10 @@ func (client *Client) getRespAndSignFromHttpResp(httpResp param.Params) (param.P
 		return nil, "", err
 	}
 	if _, ok = httpResp["sign"]; !ok {
-		return nil, "", payErr.PayReturnParamNotHaveSignErr
+		return nil, "", exerror.PayReturnParamNotHaveSignErr
 	}
 	if retSign, ok = httpResp["sign"].(string); !ok {
-		return nil, "", payErr.SignFormatErr
+		return nil, "", exerror.SignFormatErr
 	}
 	return httpResp, retSign, nil
 }
@@ -201,16 +201,16 @@ func (client *Client) isSuccess(data param.Params) error {
 		ok                     bool
 	)
 	if _, ok = data["return_code"]; !ok {
-		return payErr.CodeNotFoundErr
+		return exerror.CodeNotFoundErr
 	}
 	if _, ok = data["result_code"]; !ok {
-		return payErr.CodeNotFoundErr
+		return exerror.CodeNotFoundErr
 	}
 	if returnCode, ok = data["return_code"].(string); !ok {
-		return payErr.CodeFormatErr
+		return exerror.CodeFormatErr
 	}
 	if resultCode, ok = data["result_code"].(string); !ok {
-		return payErr.CodeFormatErr
+		return exerror.CodeFormatErr
 	}
 	if returnCode == "SUCCESS" && resultCode == "SUCCESS" {
 		return nil
@@ -262,7 +262,7 @@ func (client *Client) generateCertificate() (*tls.Certificate, error) {
 		}
 		certPem = keyPem
 	} else {
-		return nil, payErr.CertNotFoundErr
+		return nil, exerror.CertNotFoundErr
 	}
 	if certificate, err = tls.X509KeyPair(certPem, keyPem); err != nil {
 		return nil, err

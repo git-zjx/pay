@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"pay/clients/wechatv3/pkg/sign"
 	"pay/pkg/constant"
-	payErr "pay/pkg/error"
+	 "pay/pkg/exerror"
 	"pay/pkg/helper"
 	"pay/pkg/param"
 	"time"
@@ -52,7 +52,7 @@ func (client *Client) Pay(method string, request param.Params) (param.Params, er
 	case constant.SCAN:
 		return client.scan(payload)
 	default:
-		return nil, payErr.PayMethodErr
+		return nil, exerror.PayMethodErr
 	}
 }
 

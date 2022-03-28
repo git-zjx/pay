@@ -1,4 +1,4 @@
-package error
+package exerror
 
 import "errors"
 
@@ -17,6 +17,7 @@ var (
 	ReqInfoFormatErr             = errors.New("req_info format err")
 	PrepayIdNotFoundErr          = errors.New("prepay_id not found err")
 	PrepayIdFormatErr            = errors.New("prepay_id format err")
-	MwebUrlNotFoundErr             = errors.New("mweb_url not found err")
+	MwebUrlNotFoundErr           = errors.New("mweb_url not found err")
 	MwebUrlFormatErr             = errors.New("mweb_url format err")
+	PayConfigNotFoundErr         = errors.New("pay config not found err")
 )

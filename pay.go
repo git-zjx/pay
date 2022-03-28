@@ -6,6 +6,7 @@ import (
 	"pay/clients/wechatv3"
 	"pay/contracts"
 	"pay/pkg/constant"
+	"pay/pkg/exerror"
 	"pay/pkg/param"
 )
 
@@ -13,29 +14,31 @@ type Pay struct {
 	client contracts.Client
 }
 
-func NewPay(config interface{}) *Pay {
+func NewPay(config interface{}) (*Pay, error) {
 	pay := new(Pay)
 	switch config.(type) {
 	case *alipay.Config:
 		c, ok := config.(*alipay.Config)
 		if !ok {
-			return nil
+			return nil, exerror.PayConfigNotFoundErr
 		}
 		pay.client = alipay.NewClient(c)
 	case *wechatv2.Config:
 		c, ok := config.(*wechatv2.Config)
 		if !ok {
-			return nil
+			return nil, exerror.PayConfigNotFoundErr
 		}
 		pay.client = wechatv2.NewClient(c)
 	case *wechatv3.Config:
 		c, ok := config.(*wechatv3.Config)
 		if !ok {
-			return nil
+			return nil, exerror.PayConfigNotFoundErr
 		}
 		pay.client = wechatv3.NewClient(c)
+	default:
+		return nil, exerror.PayConfigNotFoundErr
 	}
-	return pay
+	return pay, nil
 }
 
 func (p *Pay) Web(request param.Params) (param.Params, error) {

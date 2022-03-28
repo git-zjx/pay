@@ -1,4 +1,4 @@
-package http
+package exhttp
 
 import (
 	"crypto/tls"

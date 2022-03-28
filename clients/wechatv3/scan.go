@@ -4,7 +4,7 @@ import (
 	"crypto/rsa"
 	netHttp "net/http"
 	"pay/clients/wechatv3/pkg/http"
-	payErr "pay/pkg/error"
+	 "pay/pkg/exerror"
 	"pay/pkg/param"
 )
 
@@ -31,10 +31,10 @@ func (client *Client) scan(payload param.Params) (param.Params, error) {
 		return nil, err
 	}
 	if _, ok = prePayResp["code_url"]; !ok {
-		return nil, payErr.PrepayIdNotFoundErr
+		return nil, exerror.PrepayIdNotFoundErr
 	}
 	if codeUrl, ok = prePayResp["code_url"].(string); !ok {
-		return nil, payErr.PrepayIdFormatErr
+		return nil, exerror.PrepayIdFormatErr
 	}
 	resp["code_url"] = codeUrl
 	return resp, nil

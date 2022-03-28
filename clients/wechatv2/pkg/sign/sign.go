@@ -6,7 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"hash"
-	payErr "pay/pkg/error"
+	 "pay/pkg/exerror"
 	"pay/pkg/helper"
 	"pay/pkg/param"
 	"strings"
@@ -51,7 +51,7 @@ func Verify(m interface{}, signType string, apiKey string, retSign string) error
 		return err
 	}
 	if sign != retSign {
-		return payErr.SignNotMatchErr
+		return exerror.SignNotMatchErr
 	}
 	return nil
 }

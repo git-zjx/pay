@@ -7,7 +7,7 @@ import (
 	"pay/clients/alipay/pkg/key"
 	"pay/clients/alipay/pkg/sign"
 	"pay/pkg/constant"
-	payErr "pay/pkg/error"
+	"pay/pkg/exerror"
 	"pay/pkg/helper"
 	"pay/pkg/param"
 	"time"
@@ -49,7 +49,7 @@ func (client *Client) Pay(method string, request param.Params) (param.Params, er
 	case constant.SCAN:
 		return client.scan(payload)
 	default:
-		return nil, payErr.PayMethodErr
+		return nil, exerror.PayMethodErr
 	}
 }
 
@@ -83,10 +83,10 @@ func (client *Client) Verify(request param.Params, isRefund bool) (param.Params,
 		err     error
 	)
 	if _, ok = request["sign"]; !ok {
-		return nil, payErr.SignNotFoundErr
+		return nil, exerror.SignNotFoundErr
 	}
 	if reqSign, ok = request["sign"].(string); !ok {
-		return nil, payErr.SignFormatErr
+		return nil, exerror.SignFormatErr
 	}
 	if err = sign.Verify(request, client.config.SignType, []byte(client.config.AlipayPublicKey), reqSign); err != nil {
 		return nil, err
@@ -137,10 +137,10 @@ func (client *Client) isSuccess(data param.Params) error {
 		ok   bool
 	)
 	if _, ok = data["code"]; !ok {
-		return payErr.CodeNotFoundErr
+		return exerror.CodeNotFoundErr
 	}
 	if code, ok = data["code"].(string); !ok {
-		return payErr.CodeFormatErr
+		return exerror.CodeFormatErr
 	}
 	if code == "10000" {
 		return nil
@@ -156,20 +156,20 @@ func (client *Client) getRespAndSignFromHttpResp(httpResp param.Params, method s
 	)
 	data, ok := httpResp[helper.BuildResponseKeyFromMethod(method)]
 	if !ok {
-		return nil, "", payErr.PayReturnParamFormatErr
+		return nil, "", exerror.PayReturnParamFormatErr
 	}
 	if resp, ok = data.(map[string]interface{}); !ok {
-		return nil, "", payErr.PayReturnParamFormatErr
+		return nil, "", exerror.PayReturnParamFormatErr
 	}
 	if err = client.isSuccess(resp); err != nil {
 		return nil, "", err
 	}
 	if _, ok = httpResp["sign"]; !ok {
-		return nil, "", payErr.PayReturnParamNotHaveSignErr
+		return nil, "", exerror.PayReturnParamNotHaveSignErr
 	}
 
 	if retSign, ok = httpResp["sign"].(string); !ok {
-		return nil, "", payErr.SignFormatErr
+		return nil, "", exerror.SignFormatErr
 	}
 	return resp, retSign, nil
 }

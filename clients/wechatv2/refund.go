@@ -3,7 +3,7 @@ package wechatv2
 import (
 	"crypto/tls"
 	"pay/pkg/helper"
-	"pay/pkg/http"
+	"pay/pkg/exhttp"
 	"pay/pkg/param"
 	"strings"
 )
@@ -28,7 +28,7 @@ func (client *Client) refund(payload param.Params) (param.Params, error) {
 		Certificates:       []tls.Certificate{*certificate},
 		InsecureSkipVerify: true,
 	}
-	if httpResp, err = http.Post(url, http.TypeXML, strings.NewReader(helper.XmlMarshal(payload)), tlsConfig); err != nil {
+	if httpResp, err = exhttp.Post(url, exhttp.TypeXML, strings.NewReader(helper.XmlMarshal(payload)), tlsConfig); err != nil {
 		return nil, err
 	}
 	resp, sign, err = client.getRespAndSignFromHttpResp(httpResp)
