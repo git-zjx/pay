@@ -74,6 +74,17 @@ func (client *Client) Close(request param.Params) (param.Params, error) {
 	return client.close(payload)
 }
 
+func (client *Client) Cancel(request param.Params) (param.Params, error) {
+	return nil, nil
+}
+
+func (client *Client) Verify(request param.Params, isRefund bool) (param.Params, error) {
+	return nil, nil
+}
+
+func (client *Client) Success() {
+}
+
 func (client *Client) getUrl(endPoint string) string {
 	if client.config.Sandbox {
 		return SandboxHost + endPoint

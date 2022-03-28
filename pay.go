@@ -3,6 +3,7 @@ package pay
 import (
 	"pay/clients/alipay"
 	"pay/clients/wechatv2"
+	"pay/clients/wechatv3"
 	"pay/contracts"
 	"pay/pkg/constant"
 	"pay/pkg/param"
@@ -27,6 +28,12 @@ func NewPay(config interface{}) *Pay {
 			return nil
 		}
 		pay.client = wechatv2.NewClient(c)
+	case *wechatv3.Config:
+		c, ok := config.(*wechatv3.Config)
+		if !ok {
+			return nil
+		}
+		pay.client = wechatv3.NewClient(c)
 	}
 	return pay
 }
